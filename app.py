@@ -162,6 +162,14 @@ async def synthesize(
                     )
                 import librosa
                 ref_audio, ref_sr = librosa.load(str(ref_audio_path), sr=SAMPLE_RATE)
+                # Preprocess sample audio too
+                ref_audio, ref_sr = preprocess_reference_audio(ref_audio, ref_sr)
+                duration = get_audio_duration(ref_audio, ref_sr)
+                if duration < 2:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Sample audio is too short - minimum 2 seconds required"
+                    )
             else:
                 # Read uploaded file content (async)
                 audio_bytes = await reference_audio.read()

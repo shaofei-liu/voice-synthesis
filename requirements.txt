@@ -1,0 +1,16 @@
+fastapi==0.104.1
+uvicorn==0.24.0
+python-multipart==0.0.6
+torch>=2.0.0
+torchaudio>=2.0.0
+torchcodec>=0.1.0
+TTS==0.22.0
+transformers==4.36.0
+librosa
+soundfile
+numpy
+scipy
+pydub
+# openai-whisper  # Optional: only if transcription is needed in the future
+# Note: ffmpeg is required and should be installed via conda:
+# conda install ffmpeg -y

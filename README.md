@@ -252,9 +252,8 @@ Feel free to submit issues and enhancement requests!
 
 For issues and questions:
 1. Visit my personal website: https://www.shaofeiliu.com
-2. Check the [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for deployment details
-3. Open an issue on GitHub
-4. Check TTS documentation: https://github.com/coqui-ai/TTS
+2. Open an issue on GitHub
+3. Check TTS documentation: https://github.com/coqui-ai/TTS
 
 ---
 

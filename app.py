@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form, HTTPException
+from fastapi import FastAPI, UploadFile, Form, File, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
@@ -85,7 +85,7 @@ async def get_samples():
 async def synthesize(
     text: str = Form(...),
     language: str = Form(default="en"),
-    reference_audio: UploadFile = None,
+    reference_audio: UploadFile = File(None),
     sample_audio: str = Form(None)
 ):
     """

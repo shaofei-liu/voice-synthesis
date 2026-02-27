@@ -26,6 +26,33 @@ LANGUAGE_OPTIONS = {
     "de": "German",
 }
 
+# XTTS v2 synthesis parameters - per language optimization
+# These control the balance between voice consistency and naturalness
+TTS_SYNTHESIS_PARAMS = {
+    # English parameters - slightly less conservative for more natural flow
+    "en": {
+        "temperature": 0.52,    # Conservative but slightly less strict than German
+                                # English is more forgiving with slight variation
+        "top_p": 0.68,          # Slightly more diverse than German
+        "top_k": 35,            # Slightly higher than German for better naturalness
+        "split_sentences": False,
+        "speech_rate": 0.85,
+    },
+    # German parameters - very conservative for clean end-of-utterance
+    "de": {
+        "temperature": 0.50,    # Most conservative - German is strict about precision
+        "top_p": 0.65,          # Very conservative nucleus sampling
+        "top_k": 30,            # Conservative to avoid high-freq artifacts
+        "split_sentences": False,
+        "speech_rate": 0.85,
+    },
+    # Lowpass filter frequencies per language
+    "lowpass_freq": {
+        "en": 8500,             # English can handle slightly more high-freq
+        "de": 8000,             # German prefers lower cutoff for clarity
+    }
+}
+
 # Sample audio files organized by language
 SAMPLE_AUDIOS = {
     "en": [

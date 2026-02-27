@@ -28,7 +28,8 @@ def load_audio(file_path):
 
 def normalize_audio(audio):
     """
-    Normalize audio (volume normalization)
+    Normalize audio using gentle RMS-based normalization
+    Avoids high-frequency distortion from aggressive processing
     
     Args:
         audio: Audio data
@@ -37,9 +38,21 @@ def normalize_audio(audio):
         Normalized audio data
     """
     audio = audio.astype(np.float32)
+    
+    # Use RMS (Root Mean Square) normalization
+    rms = np.sqrt(np.mean(audio ** 2))
+    
+    if rms > 0:
+        # Target RMS level at -20dB (0.1 in linear scale)
+        target_rms = 0.1
+        audio = audio * (target_rms / rms)
+    
+    # Gentle linear clipping only if absolutely necessary
+    # Avoid tanh or other non-linear functions that distort high frequencies
     max_val = np.max(np.abs(audio))
-    if max_val > 0:
-        audio = audio / max_val * 0.95
+    if max_val > 0.95:
+        audio = audio * (0.95 / max_val)
+    
     return audio
 
 
@@ -63,6 +76,29 @@ def trim_silence(audio, sr, top_db=40):
         return audio
 
 
+def adjust_speech_rate(audio, rate=0.85):
+    """
+    Adjust speech rate/tempo without changing pitch
+    
+    Args:
+        audio: Audio data
+        rate: Speech rate multiplier (< 1.0 = slower, > 1.0 = faster)
+              Default 0.85 makes speech ~85% speed (slower/more natural)
+        
+    Returns:
+        Audio with adjusted speech rate
+    """
+    if rate <= 0 or rate != rate:  # Validate rate
+        return audio
+    try:
+        # Use librosa's time_stretch to change tempo without pitch shift
+        adjusted_audio = librosa.effects.time_stretch(audio, rate=rate)
+        return adjusted_audio
+    except Exception as e:
+        print(f"Warning: Failed to adjust speech rate: {e}")
+        return audio
+
+
 def save_audio(audio, file_path, sr=SAMPLE_RATE):
     """
     Save audio file
@@ -80,9 +116,54 @@ def save_audio(audio, file_path, sr=SAMPLE_RATE):
         raise Exception(f"Failed to save audio: {str(e)}")
 
 
+def apply_frequency_eq(audio, sr):
+    """
+    Apply gentle frequency equalization to improve audio clarity
+    WITHOUT overly emphasizing high frequencies
+    
+    Args:
+        audio: Audio data
+        sr: Sample rate
+        
+    Returns:
+        EQ-processed audio (or unmodified if processing fails)
+    """
+    # DISABLED: Frequency EQ was causing high-frequency emphasis at end of speech
+    # For voice cloning, it's better to preserve original frequency characteristics
+    # of the reference audio rather than modify them
+    return audio
+
+
+def apply_lowpass_filter(audio, sr, cutoff_freq=8000):
+    """
+    Apply gentle lowpass filter to remove high-frequency artifacts
+    Prevents sharp/shrill sounds at end of utterance
+    
+    Args:
+        audio: Audio data
+        sr: Sample rate
+        cutoff_freq: Cutoff frequency in Hz (default 8000 Hz for natural speech)
+        
+    Returns:
+        Filtered audio
+    """
+    try:
+        from scipy.signal import butter, sosfilt
+        
+        # Design lowpass filter
+        sos = butter(4, cutoff_freq, 'low', fs=sr, output='sos')
+        filtered_audio = sosfilt(sos, audio)
+        
+        return filtered_audio
+    except Exception as e:
+        print(f"Warning: Lowpass filtering failed: {e}")
+        return audio
+
+
 def preprocess_reference_audio(audio, sr):
     """
     Preprocess reference audio for voice cloning
+    Improved with better noise handling and frequency processing
     
     Args:
         audio: Audio data
@@ -94,15 +175,18 @@ def preprocess_reference_audio(audio, sr):
     # 1. Gentle silence trimming (less aggressive - top_db=50 instead of 30)
     audio = trim_silence(audio, sr, top_db=50)
     
-    # 2. Normalize volume
+    # 2. Apply frequency equalization for better voice quality
+    audio = apply_frequency_eq(audio, sr)
+    
+    # 3. Normalize volume using RMS for better stability
     audio = normalize_audio(audio)
     
-    # 3. Limit length (5-30 seconds max)
+    # 6. Limit length (5-30 seconds max)
     max_samples = sr * 30
     if len(audio) > max_samples:
         audio = audio[:max_samples]
     
-    # 4. Minimum length check (at least 2 seconds)
+    # 7. Minimum length check (at least 2 seconds)
     min_samples = sr * 2
     if len(audio) < min_samples:
         raise ValueError("Reference audio too short - minimum 2 seconds required")

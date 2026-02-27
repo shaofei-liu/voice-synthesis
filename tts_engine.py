@@ -1,6 +1,6 @@
 import torch
 from pathlib import Path
-from config import TTS_MODEL_NAME, SAMPLE_RATE, LANGUAGE_OPTIONS, OUTPUT_DIR, MODELS_DIR
+from config import TTS_MODEL_NAME, SAMPLE_RATE, LANGUAGE_OPTIONS, OUTPUT_DIR, MODELS_DIR, TTS_SYNTHESIS_PARAMS
 from audio_utils import preprocess_reference_audio, save_audio
 import os
 import sys
@@ -103,19 +103,38 @@ class TTSEngine:
         if not output_path:
             output_path = OUTPUT_DIR / f"synthesis_{hash(text)}.wav"
         
-        # Use XTTS v2 for voice cloning synthesis with continuous text processing
-        # Optimizations: split_sentences=False for faster processing
+        # Get language-specific synthesis parameters
+        lang_params = TTS_SYNTHESIS_PARAMS.get(language_code, TTS_SYNTHESIS_PARAMS.get("en", {}))
+        
+        # Use XTTS v2 for voice cloning synthesis with language-optimized parameters
+        # Different languages have different characteristics:
+        # - German: more conservative for precision and clarity
+        # - English: slightly more flexible for natural flow
         self.tts.tts_to_file(
             text=text,
             speaker_wav=reference_audio_path,
             language=language_code,
             file_path=str(output_path),
-            split_sentences=False  # Faster: Process full text without sentence splitting
+            split_sentences=lang_params.get("split_sentences", False),
+            temperature=lang_params.get("temperature", 0.75),
+            top_p=lang_params.get("top_p", 0.85),
+            top_k=lang_params.get("top_k", 50)
         )
         
         # Load generated audio
         import librosa
         audio, sample_rate = librosa.load(str(output_path), sr=SAMPLE_RATE)
+        
+        # Apply language-specific lowpass filter to remove high-frequency artifacts
+        from audio_utils import apply_lowpass_filter
+        lowpass_cutoff = TTS_SYNTHESIS_PARAMS.get("lowpass_freq", {}).get(language_code, 8000)
+        audio = apply_lowpass_filter(audio, sample_rate, cutoff_freq=lowpass_cutoff)
+        
+        # Apply speech rate adjustment if configured
+        speech_rate = lang_params.get("speech_rate", 1.0)
+        if speech_rate != 1.0:
+            from audio_utils import adjust_speech_rate
+            audio = adjust_speech_rate(audio, rate=speech_rate)
         
         print(f"✅ Synthesis complete! Output: {output_path}")
         return audio, sample_rate, str(output_path)

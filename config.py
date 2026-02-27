@@ -63,7 +63,6 @@ SAMPLE_AUDIOS = {
         "taylor_swift.wav",
     ],
     "de": [
-        "angela_merkel.wav",
         "anke_engelke.wav",
         "günther_jauch.wav",
         "heiner_lauterbach.wav",
@@ -79,7 +78,6 @@ SAMPLE_VOICE_NAMES = {
     "harry_kane.wav": "Harry Kane",
     "morgan_freeman.wav": "Morgan Freeman",
     "taylor_swift.wav": "Taylor Swift",
-    "angela_merkel.wav": "Angela Merkel",
     "anke_engelke.wav": "Anke Engelke",
     "günther_jauch.wav": "Günther Jauch",
     "heiner_lauterbach.wav": "Heiner Lauterbach",

@@ -1,0 +1,74 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# HuggingFace Spaces - exclude documentation files not needed on Space
+DEPLOYMENT_GUIDE.md
+SPACES_README.md
+convert_samples.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+output/
+uploaded_files/
+*.wav
+*.mp3
+*.flac
+!samples/*.wav
+.streamlit/
+
+# Cache and temp
+.cache/
+*.cache
+*.tmp
+temp/
+tmp/
+
+# Environment variables
+.env
+.env.local
+
+# OS
+Thumbs.db
+.DS_Store
+*.log
+
+# Large model files (if storing locally, uncomment)
+# models/
+# *.pth
+# *.pt
+# *.pkl
